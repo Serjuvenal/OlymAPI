@@ -5,9 +5,10 @@ from . import models, schemas
 
 def create_teilnehmer(db: Session, teilnehmer: schemas.TeilnehmerSchema):
     db_user = models.TeilnehmerModel(
-        email=teilnehmer.email,
         vorname=teilnehmer.vorname,
         nachname=teilnehmer.nachname,
+        email=teilnehmer.email,
+        land=teilnehmer.land
     )
     db.add(db_user)
     db.commit()

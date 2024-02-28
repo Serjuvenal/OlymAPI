@@ -2,9 +2,10 @@ from pydantic import BaseModel, EmailStr
 
 
 class TeilnehmerSchema(BaseModel):
-    email: EmailStr
     vorname: str
     nachname: str
+    land: str
+    email: EmailStr
 
     class Config:
         from_attributes = True

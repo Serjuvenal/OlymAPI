@@ -2,9 +2,9 @@ from sqlalchemy.orm import Session
 
 from fastapi import Depends, FastAPI
 
-from . import models, schemas
-from app import crud
-from app.database import engine, get_db
+from . import models, schemas, crud
+from .database import engine, get_db
+
 
 models.Base.metadata.create_all(bind=engine)
 
