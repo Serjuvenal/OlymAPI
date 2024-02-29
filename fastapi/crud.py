@@ -1,19 +1,20 @@
 from sqlalchemy.orm import Session
 
-from . import models, schemas
+import models
+import schemas
 
 
 def create_teilnehmer(db: Session, teilnehmer: schemas.TeilnehmerSchema):
-    db_user = models.TeilnehmerModel(
+    db_teilnehmer = models.TeilnehmerModel(
         vorname=teilnehmer.vorname,
         nachname=teilnehmer.nachname,
         email=teilnehmer.email,
-        land=teilnehmer.land
+        land=teilnehmer.land,
     )
-    db.add(db_user)
+    db.add(db_teilnehmer)
     db.commit()
-    db.refresh(db_user)
-    return db_user
+    db.refresh(db_teilnehmer)
+    return db_teilnehmer
 
 
 def get_teilnehmern(db: Session):
