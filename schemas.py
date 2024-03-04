@@ -13,6 +13,7 @@ class MitarbeiterSchema(BaseModel):
     email: EmailStr
     username: str
     kennwort: str
+    is_active: bool
 
 
 class WettbewerbSchema(BaseModel):

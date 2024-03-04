@@ -28,6 +28,7 @@ class MitarbeiterModel(Base):
     email = Column(String, unique=True, index=True)
     username = Column(String)
     kennwort = Column(String)
+    is_active = Column(Boolean, default=False)
 
 
 class WettbewerbMitarbeiterModel(Base):

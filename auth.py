@@ -17,7 +17,6 @@ def create_access_token(user):
         claims = {
             "sub": user.username,
             "email": user.email,
-            "role": user.role.value,
             "active": user.is_active,
             "exp": datetime.datetime.now() + datetime.timedelta(minutes=30),
         }
@@ -56,13 +55,13 @@ def check_active(token: str = Depends(oauth2_scheme)):
         return payload
 
 
-def check_admin(payload: dict = Depends(check_active)):
-    role = payload.get("role")
-    if role != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Zugriff nur für autorisierte Benutzer.",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    else:
-        return payload
+#def check_admin(payload: dict = Depends(check_active)):
+#    role = payload.get("role")
+#    if role != "admin":
+#        raise HTTPException(
+#            status_code=status.HTTP_403_FORBIDDEN,
+#            detail="Zugriff nur für autorisierte Benutzer.",
+#            headers={"WWW-Authenticate": "Bearer"},
+#        )
+#    else:
+#        return payload

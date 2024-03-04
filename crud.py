@@ -7,13 +7,15 @@ import schemas
 # REGION USERS
 
 
-def create_user(db: Session, user: schemas.UserSchema):
-    hashed_password = auth.get_password_hash(user.password)
-    db_user = models.UserModel(
+def create_user(db: Session, user: schemas.MitarbeiterSchema):
+    hashed_password = auth.get_password_hash(user.kennwort)
+    db_user = models.MitarbeiterModel(
+        vorname=user.vorname,
+        nachname=user.nachname,
         email=user.email,
         username=user.username,
-        hashed_password=hashed_password,
-        role=user.role.value,
+        kennwort=hashed_password,
+        is_active=user.is_active,
     )
     db.add(db_user)
     db.commit()
@@ -22,12 +24,12 @@ def create_user(db: Session, user: schemas.UserSchema):
 
 
 def get_users(db: Session):
-    return db.query(models.UserModel).all()
+    return db.query(models.MitarbeiterModel).all()
 
 
 def get_users_by_username(db: Session, username: str):
     return (
-        db.query(models.UserModel).filter(models.UserModel.username == username).first()
+        db.query(models.MitarbeiterModel).filter(models.MitarbeiterModel.username == username).first()
     )
 
 
@@ -51,6 +53,7 @@ def create_mitarbeiter(db: Session, mitarbeiter: schemas.MitarbeiterSchema):
         email=mitarbeiter.email,
         username=mitarbeiter.username,
         kennwort=mitarbeiter.kennwort,
+        is_active=mitarbeiter.is_active,
     )
     db.add(db_mitarbeiter)
     db.commit()
