@@ -1,16 +1,37 @@
 from sqlalchemy.orm import Session
 
+import auth
 import models
 import schemas
 
+# REGION USERS
 
-def get_teilnehmer_by_vorname(db: Session, vorname: str, nachname: str):
-    return (
-        db.query(models.TeilnehmerModel).filter(
-            models.TeilnehmerModel.vorname == vorname,
-            models.TeilnehmerModel.nachname == nachname
-        ).all()
+
+def create_user(db: Session, user: schemas.UserSchema):
+    hashed_password = auth.get_password_hash(user.password)
+    db_user = models.UserModel(
+        email=user.email,
+        username=user.username,
+        hashed_password=hashed_password,
+        role=user.role.value,
     )
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
+
+def get_users(db: Session):
+    return db.query(models.UserModel).all()
+
+
+def get_users_by_username(db: Session, username: str):
+    return (
+        db.query(models.UserModel).filter(models.UserModel.username == username).first()
+    )
+
+
+# REGION CREATE IN DB
 
 
 def create_rolle(db: Session, rolle: schemas.RolleSchema):
@@ -103,6 +124,9 @@ def create_team(db: Session, team: schemas.TeamSchema):
     return db_team
 
 
+# REGION GET FROM DB
+
+
 def get_rollen(db: Session):
     return db.query(models.RolleModel).all()
 
@@ -133,3 +157,12 @@ def get_teilnehmern(db: Session):
 
 def get_teams(db: Session):
     return db.query(models.TeamModel).all()
+
+
+def get_teilnehmer_by_vorname(db: Session, vorname: str, nachname: str):
+    return (
+        db.query(models.TeilnehmerModel).filter(
+            models.TeilnehmerModel.vorname == vorname,
+            models.TeilnehmerModel.nachname == nachname
+        ).all()
+    )
