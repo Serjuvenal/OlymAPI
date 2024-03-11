@@ -29,7 +29,9 @@ def get_users(db: Session):
 
 def get_users_by_username(db: Session, username: str):
     return (
-        db.query(models.MitarbeiterModel).filter(models.MitarbeiterModel.username == username).first()
+        db.query(models.MitarbeiterModel)
+        .filter(models.MitarbeiterModel.username == username)
+        .first()
     )
 
 
@@ -155,7 +157,8 @@ def get_bewertungsarten(db: Session):
 
 
 def get_teilnehmern(db: Session):
-    return db.query(models.TeilnehmerModel).all()
+    return (db.query(models.TeilnehmerModel).join()
+            .all())
 
 
 def get_teams(db: Session):

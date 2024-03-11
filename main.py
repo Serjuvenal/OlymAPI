@@ -31,7 +31,7 @@ def register_user(user: schemas.MitarbeiterSchema, db: Session = Depends(get_db)
 
 
 @app.get("/user-verifizierung/{token}", response_class=HTMLResponse)
-def login_user(token: str, db: Session = Depends(get_db)):
+def verify_user(token: str, db: Session = Depends(get_db)):
     payload = auth.verify_token(token)
     username = payload.get("sub")
     db_user = crud.get_users_by_username(db, username)
@@ -51,7 +51,7 @@ def login_user(token: str, db: Session = Depends(get_db)):
     """
 
 
-@app.post("/login-user")
+@app.post("/login")
 def login_user(
     form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
 ):
@@ -102,13 +102,13 @@ def mitarbeiter_einlegen(mitarbeiter: schemas.MitarbeiterSchema, db: Session = D
     return token
 
 
-@app.get("/mitarbeitern")
+@app.get("/mitarbeitern", dependencies=[Depends(auth.check_active)])
 def get_all_mitarbeiter(db: Session = Depends(get_db)):
     db_mitarbeitern = crud.get_mitarbeiter(db=db)
     return db_mitarbeitern
 
 
-############
+############, dependencies=[Depends(auth.check_active)]
 # ENDPUNKTE WETBEWERB
 ############
 
