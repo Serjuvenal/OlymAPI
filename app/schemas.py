@@ -2,6 +2,32 @@ from enum import Enum
 
 from pydantic import BaseModel, EmailStr
 
+from fastapi_users.schemas import BaseUser, BaseUserUpdate, BaseUserCreate
+
+########
+# USER
+########
+
+
+class UserRead(BaseUser):
+    username: str
+    pass
+
+
+class UserCreate(BaseUserCreate):
+    username: str
+    pass
+
+
+class UserUpdate(BaseUserUpdate):
+    username: str
+    pass
+
+
+########
+# REST ENTITAETEN
+########
+
 
 class RolleSchema(BaseModel):
     bezeichnung: str

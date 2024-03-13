@@ -1,34 +1,23 @@
-from sqlalchemy import ForeignKey, Column, Integer, String, Date, DateTime, Boolean, Enum
+from fastapi import Depends
+from fastapi_users.db import SQLAlchemyUserDatabase
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import ForeignKey, Column, Integer, String, Date, DateTime
+from fastapi_users.db import SQLAlchemyBaseUserTable
 
-from database import Base
-from schemas import Roles
+SQLALCHEMY_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
 
+Base = declarative_base()
 
-class RolleModel(Base):
-    __tablename__ = "Rolle"
-
-    rolle_id = Column(Integer, primary_key=True, index=True, unique=True)
-    bezeichnung = Column(String)
-
-
-class RolleDesMitarbeitersModel(Base):
-    __tablename__ = "RolleDesMitarbeiters"
-
-    rolledesmitarbeiters_id = Column(Integer, primary_key=True, index=True, unique=True)
-    rolle_id = Column(Integer, ForeignKey('Rolle.rolle_id'), index=True)
-    mitarbeiter_id = Column(Integer, ForeignKey('Mitarbeiter.mitarbeiter_id'), index=True)
+###########
+# MODELLE
+###########
 
 
-class MitarbeiterModel(Base):
-    __tablename__ = "Mitarbeiter"
-
-    mitarbeiter_id = Column(Integer, primary_key=True, index=True, unique=True)
-    vorname = Column(String)
-    nachname = Column(String)
-    email = Column(String, unique=True, index=True)
-    username = Column(String, unique=True)
-    kennwort = Column(String)
-    is_active = Column(Boolean, default=False)
+class User(SQLAlchemyBaseUserTable, Base):
+    user_id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(10), unique=True)
 
 
 class WettbewerbMitarbeiterModel(Base):
@@ -36,7 +25,7 @@ class WettbewerbMitarbeiterModel(Base):
 
     wettbewerbmitarbeiter_id = Column(Integer, primary_key=True, index=True, unique=True)
     wettbewerb_id = Column(Integer, ForeignKey('Wettbewerb.wettbewerb_id'), index=True)
-    mitarbeiter_id = Column(Integer, ForeignKey('Mitarbeiter.mitarbeiter_id'), index=True)
+    user_id = Column(Integer, ForeignKey('user.user_id'), index=True)
 
 
 class WettbewerbModel(Base):
@@ -94,7 +83,7 @@ class TeilnehmerModel(Base):
     teilnehmer_id = Column(Integer, primary_key=True, index=True, unique=True)
     vorname = Column(String)
     nachname = Column(String)
-    alter = Column(String)
+    startnummer = Column(Integer, unique=True)
     team_id = Column(Integer, ForeignKey('Team.team_id'), index=True)
 
 
@@ -105,12 +94,24 @@ class TeamModel(Base):
     bezeichnung = Column(String)
 
 
-class UserModel(Base):
-    __tablename__ = "users"
+###########
+# MODELLE
+###########
 
-    id = Column(Integer, primary_key=True, index=True, unique=True)
-    email = Column(String, unique=False, index=True)
-    username = Column(String, unique=True)
-    hashed_password = Column(String)
-    is_active = Column(Boolean, default=False)
-    role = Column(Enum(Roles), default="user")
+
+async_engine = create_async_engine(SQLALCHEMY_DATABASE_URL)
+async_session_maker = sessionmaker(async_engine, class_=AsyncSession, expire_on_commit=False)
+
+
+async def create_db_and_tables():
+    async with async_engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+
+async def get_async_session():
+    async with async_session_maker() as session:
+        yield session
+
+
+async def get_user_db(session: AsyncSession = Depends(get_async_session)):
+    yield SQLAlchemyUserDatabase(session=session, user_table=User)
