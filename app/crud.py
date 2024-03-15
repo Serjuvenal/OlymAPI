@@ -1,70 +1,33 @@
+from typing import Any, Sequence
+
+from sqlalchemy import Row
+from sqlalchemy.exc import InvalidRequestError, IntegrityError
 from sqlalchemy.orm import Session
-
-import auth
-import models
-import schemas
-
-# REGION USERS
+from sqlalchemy.ext.asyncio import AsyncSession
+from app import database
+from app import schemas
 
 
-def create_user(db: Session, user: schemas.MitarbeiterSchema):
-    hashed_password = auth.get_password_hash(user.kennwort)
-    db_user = models.MitarbeiterModel(
-        vorname=user.vorname,
-        nachname=user.nachname,
-        email=user.email,
-        username=user.username,
-        kennwort=hashed_password,
-        is_active=user.is_active,
-    )
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return db_user
+async def get_sportarten(db: AsyncSession):
+    result = await db.execute(database.SportartModel.__table__.select())
+    return result.fetchall()
 
 
-def get_users(db: Session):
-    return db.query(models.MitarbeiterModel).all()
-
-
-def get_users_by_username(db: Session, username: str):
-    return (
-        db.query(models.MitarbeiterModel)
-        .filter(models.MitarbeiterModel.username == username)
-        .first()
-    )
-
-
-# REGION CREATE IN DB
-
-
-def create_rolle(db: Session, rolle: schemas.RolleSchema):
-    db_rolle = models.RolleModel(
-        bezeichnung=rolle.bezeichnung,
-    )
-    db.add(db_rolle)
-    db.commit()
-    db.refresh(db_rolle)
-    return db_rolle
-
-
-def create_mitarbeiter(db: Session, mitarbeiter: schemas.MitarbeiterSchema):
-    db_mitarbeiter = models.MitarbeiterModel(
-        vorname=mitarbeiter.vorname,
-        nachname=mitarbeiter.nachname,
-        email=mitarbeiter.email,
-        username=mitarbeiter.username,
-        kennwort=mitarbeiter.kennwort,
-        is_active=mitarbeiter.is_active,
-    )
-    db.add(db_mitarbeiter)
-    db.commit()
-    db.refresh(db_mitarbeiter)
-    return db_mitarbeiter
+async def create_sportart(db: AsyncSession, sportart: schemas.SportartSchema):
+    try:
+        async with db.begin():
+            db_sportart = database.SportartModel(**sportart.dict())
+            db.add(db_sportart)
+            await db.flush()
+            await db.refresh(db_sportart)
+        return db_sportart
+    except IntegrityError as e:
+        async with db.rollback():
+            raise ValueError(f"Unable to create sportart: {e}")
 
 
 def create_wettbewerb(db: Session, wettbewerb: schemas.WettbewerbSchema):
-    db_wettbewerb = models.WettbewerbModel(
+    db_wettbewerb = database.WettbewerbModel(
         bezeichnung=wettbewerb.bezeichnung,
         datum=wettbewerb.datum,
         start=wettbewerb.start,
@@ -76,18 +39,8 @@ def create_wettbewerb(db: Session, wettbewerb: schemas.WettbewerbSchema):
     return db_wettbewerb
 
 
-def create_sportart(db: Session, sportart: schemas.SportartSchema):
-    db_sportart = models.SportartModel(
-        bezeichnung=sportart.bezeichnung,
-    )
-    db.add(db_sportart)
-    db.commit()
-    db.refresh(db_sportart)
-    return db_sportart
-
-
 def create_sportstaette(db: Session, sportstaette: schemas.SportstaetteSchema):
-    db_sportstaette = models.SportstaetteModel(
+    db_sportstaette = database.SportstaetteModel(
         bezeichnung=sportstaette.bezeichnung,
     )
     db.add(db_sportstaette)
@@ -97,7 +50,7 @@ def create_sportstaette(db: Session, sportstaette: schemas.SportstaetteSchema):
 
 
 def create_bewertungsart(db: Session, bewertungsart: schemas.BewertungsartSchema):
-    db_bewertungsart = models.BewertungsartModel(
+    db_bewertungsart = database.BewertungsartModel(
         bezeichnung=bewertungsart.bezeichnung,
     )
     db.add(db_bewertungsart)
@@ -107,7 +60,7 @@ def create_bewertungsart(db: Session, bewertungsart: schemas.BewertungsartSchema
 
 
 def create_teilnehmer(db: Session, teilnehmer: schemas.TeilnehmerSchema):
-    db_teilnehmer = models.TeilnehmerModel(
+    db_teilnehmer = database.TeilnehmerModel(
         vorname=teilnehmer.vorname,
         nachname=teilnehmer.nachname,
         alter=teilnehmer.alter,
@@ -120,7 +73,7 @@ def create_teilnehmer(db: Session, teilnehmer: schemas.TeilnehmerSchema):
 
 
 def create_team(db: Session, team: schemas.TeamSchema):
-    db_team = models.TeamModel(
+    db_team = database.TeamModel(
         bezeichnung=team.bezeichnung,
     )
     db.add(db_team)
@@ -132,43 +85,31 @@ def create_team(db: Session, team: schemas.TeamSchema):
 # REGION GET FROM DB
 
 
-def get_rollen(db: Session):
-    return db.query(models.RolleModel).all()
-
-
-def get_mitarbeiter(db: Session):
-    return db.query(models.MitarbeiterModel).all()
-
-
 def get_wettbewerbe(db: Session):
-    return db.query(models.WettbewerbModel).all()
-
-
-def get_sportarten(db: Session):
-    return db.query(models.SportartModel).all()
+    return db.query(database.WettbewerbModel).all()
 
 
 def get_sportstaetten(db: Session):
-    return db.query(models.SportstaetteModel).all()
+    return db.query(database.SportstaetteModel).all()
 
 
 def get_bewertungsarten(db: Session):
-    return db.query(models.BewertungsartModel).all()
+    return db.query(database.BewertungsartModel).all()
 
 
 def get_teilnehmern(db: Session):
-    return (db.query(models.TeilnehmerModel).join()
+    return (db.query(database.TeilnehmerModel).join()
             .all())
 
 
 def get_teams(db: Session):
-    return db.query(models.TeamModel).all()
+    return db.query(database.TeamModel).all()
 
 
 def get_teilnehmer_by_vorname(db: Session, vorname: str, nachname: str):
     return (
-        db.query(models.TeilnehmerModel).filter(
-            models.TeilnehmerModel.vorname == vorname,
-            models.TeilnehmerModel.nachname == nachname
+        db.query(database.TeilnehmerModel).filter(
+            database.TeilnehmerModel.vorname == vorname,
+            database.TeilnehmerModel.nachname == nachname
         ).all()
     )
