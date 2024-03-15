@@ -5,6 +5,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from fastapi_users.db import SQLAlchemyBaseUserTable, SQLAlchemyUserDatabase
 from fastapi import Depends
+from collections.abc import Sequence
 
 SQLALCHEMY_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
 Base = declarative_base()

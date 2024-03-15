@@ -10,7 +10,10 @@ from app import schemas
 
 async def get_sportarten(db: AsyncSession):
     result = await db.execute(database.SportartModel.__table__.select())
-    return result.fetchall()
+    db_sportart = result.fetchall()
+    print(type(db_sportart))
+    [print(_) for _ in db_sportart]
+    return db_sportart
 
 
 async def create_sportart(db: AsyncSession, sportart: schemas.SportartSchema):
