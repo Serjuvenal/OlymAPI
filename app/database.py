@@ -5,9 +5,14 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from fastapi_users.db import SQLAlchemyBaseUserTable, SQLAlchemyUserDatabase
 from fastapi import Depends
-from collections.abc import Sequence
+import os
 
-SQLALCHEMY_DATABASE_URL = "sqlite+aiosqlite:///./test.db"
+
+mysqlurlocal = os.getenv("mysqlurlocal")
+
+SQLALCHEMY_DATABASE_URL = "sqlite+aiosqlite:///./test.db" #async
+# SQLALCHEMY_DATABASE_URL = "postgresql+psycopg2://scott:tiger@localhost:5432/mydatabase"
+# SQLALCHEMY_DATABASE_URL = "mysql+aiomysql:///./olympapi" #async
 Base = declarative_base()
 
 
@@ -83,7 +88,8 @@ class TeilnehmerModel(Base):
     teilnehmer_id = Column(Integer, primary_key=True, index=True, unique=True)
     vorname = Column(String)
     nachname = Column(String)
-    startnummer = Column(Integer, unique=True)
+    alter = Column(String)
+    startnummer = Column(String, unique=True)
     team_id = Column(Integer, ForeignKey('Team.team_id'), index=True)
 
 

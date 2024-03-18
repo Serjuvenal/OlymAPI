@@ -1,11 +1,9 @@
-from enum import Enum
-
 from pydantic import BaseModel, EmailStr
 
 from fastapi_users.schemas import BaseUser, BaseUserUpdate, BaseUserCreate
 
 ########
-# USER
+# USER AUTHENTIFIZIERUNG
 ########
 
 
@@ -27,19 +25,6 @@ class UserUpdate(BaseUserUpdate):
 ########
 # REST ENTITAETEN
 ########
-
-
-class RolleSchema(BaseModel):
-    bezeichnung: str
-
-
-class MitarbeiterSchema(BaseModel):
-    vorname: str
-    nachname: str
-    email: EmailStr
-    username: str
-    kennwort: str
-    is_active: bool
 
 
 class WettbewerbSchema(BaseModel):
@@ -65,24 +50,9 @@ class TeilnehmerSchema(BaseModel):
     vorname: str
     nachname: str
     alter: str
+    startnummer: str
     team_id: int
 
 
 class TeamSchema(BaseModel):
     bezeichnung: str
-
-
-class Roles(Enum):
-    user = "user"
-    admin = "admin"
-
-
-class UserSchema(BaseModel):
-    email: EmailStr
-    username: str
-    password: str
-    is_active: bool = False
-    role: Roles = "user"
-
-    class Config:
-        from_attributes = True
