@@ -44,12 +44,13 @@ class WettbewerbModel(Base):
     __tablename__ = "Wettbewerb"
 
     wettbewerb_id = Column(Integer, primary_key=True, index=True, unique=True)
-    bezeichnung = Column(String, unique=True)
-    datum = Column(Date, unique=True)
-    start = Column(DateTime)
-    dauer = Column(Integer)
+    termin = Column(DateTime)
+    bewertung = Column(Integer)
     sportart_id = Column(Integer, ForeignKey('Sportart.sportart_id'), index=True)
     sportstaette_id = Column(Integer, ForeignKey('Sportstaette.sportstaette_id'), index=True)
+    teilnehmer_id = Column(Integer, ForeignKey('Teilnehmer.teilnehmer_id'), index=True)
+    bewertungsart_id = Column(Integer, ForeignKey('Bewertungsart.bewertungsart_id'), index=True)
+    partner_wettbewerb_id = Column(Integer, ForeignKey('Wettbewerb.wettbewerb_id'))
 
 
 class SportstaetteModel(Base):
@@ -59,27 +60,11 @@ class SportstaetteModel(Base):
     bezeichnung = Column(String, unique=True)
 
 
-class BewertungModel(Base):
-    __tablename__ = "Bewertung"
-
-    bewertung_id = Column(Integer, primary_key=True, index=True, unique=True)
-    bewertungsart_id = Column(Integer, ForeignKey('Bewertungsart.bewertungsart_id'), index=True)
-    wettbewerb_id = Column(Integer, ForeignKey('Wettbewerb.wettbewerb_id'), index=True)
-
-
 class BewertungsartModel(Base):
     __tablename__ = "Bewertungsart"
 
     bewertungsart_id = Column(Integer, primary_key=True, index=True, unique=True)
     bezeichnung = Column(String, unique=True)
-
-
-class WettbewerbTeilnehmer(Base):
-    __tablename__ = "WettbewerbTeilnehmer"
-
-    wettbewerbteilnehmer_id = Column(Integer, primary_key=True, index=True, unique=True)
-    teilnehmer_id = Column(Integer, ForeignKey('Teilnehmer.teilnehmer_id'), index=True)
-    wettbewerb_id = Column(Integer, ForeignKey('Wettbewerb.wettbewerb_id'), index=True)
 
 
 class TeilnehmerModel(Base):
@@ -88,16 +73,15 @@ class TeilnehmerModel(Base):
     teilnehmer_id = Column(Integer, primary_key=True, index=True, unique=True)
     vorname = Column(String)
     nachname = Column(String)
-    alter = Column(String)
-    startnummer = Column(String, unique=True)
-    team_id = Column(Integer, ForeignKey('Team.team_id'), index=True)
+    email = Column(String)
+#    team_id = Column(Integer, ForeignKey('Team.team_id'), index=True)
 
 
-class TeamModel(Base):
-    __tablename__ = "Team"
-
-    team_id = Column(Integer, primary_key=True, index=True, unique=True)
-    bezeichnung = Column(String, unique=True)
+#class TeamModel(Base):
+#    __tablename__ = "Team"
+#
+#    team_id = Column(Integer, primary_key=True, index=True, unique=True)
+#    bezeichnung = Column(String, unique=True)
 
 
 ###########

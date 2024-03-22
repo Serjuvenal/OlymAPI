@@ -1,6 +1,8 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 
 from fastapi_users.schemas import BaseUser, BaseUserUpdate, BaseUserCreate
+from datetime import datetime
+
 
 ########
 # USER AUTHENTIFIZIERUNG
@@ -28,10 +30,13 @@ class UserUpdate(BaseUserUpdate):
 
 
 class WettbewerbSchema(BaseModel):
-    bezeichnung: str
-    datum: str
-    start: str
-    dauer: int
+    termin: datetime
+    bewertung: int
+    sportart_id: int
+    sportstaette_id: int
+    teilnehmer_id: int
+    bewertungsart_id: int
+    partner_wettbewerb_id: int
 
 
 class SportartSchema(BaseModel):
@@ -49,10 +54,9 @@ class BewertungsartSchema(BaseModel):
 class TeilnehmerSchema(BaseModel):
     vorname: str
     nachname: str
-    alter: str
-    startnummer: str
-    team_id: int
+    email: str
+#    team_id: int
 
 
-class TeamSchema(BaseModel):
-    bezeichnung: str
+#class TeamSchema(BaseModel):
+#    bezeichnung: str
