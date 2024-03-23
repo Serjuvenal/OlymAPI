@@ -1,10 +1,12 @@
-from typing import Any, Sequence
+from typing import Sequence
 from sqlalchemy import Row, desc, select, and_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from app import database
 from app import schemas
 
+
+quali_oder_finale = "2024-03-21 13:02:11.570000"
 
 # noinspection PyTypeChecker
 async def datalist_to_dict(data: Sequence[Row]):
@@ -163,63 +165,9 @@ async def get_all_teilnehmer(db: AsyncSession):
     liste = result.fetchall()
     data_dict = []
     for zeile in liste:
-        keys = ["teilnehmer_id","vorname","nachname", "email", "team_id"]
-        data_dict.append(dict(zip(keys,zeile)))
+        keys = ["teilnehmer_id", "vorname", "nachname", "email", "team_id"]
+        data_dict.append(dict(zip(keys, zeile)))
     return data_dict
-
-
-# TEAM
-
-
-#async def create_team(db: AsyncSession, team: schemas.TeamSchema):
-#    try:
-#        async with db.begin():
-#            db_team = database.TeamModel(**team.dict())
-#            db.add(db_team)
-#            await db.flush()
-#            await db.refresh(db_team)
-#        return db_team
-#    except IntegrityError as e:
-#        async with db.rollback():
-#            raise ValueError(f"Error al crear team: {e}")
-
-
-#async def get_team_by_id(db: AsyncSession, team_id: int):
-#    try:
-#        db_team = await db.get(database.TeamModel, team_id)
-#        return db_team
-#    except IntegrityError as e:
-#        async with db.rollback():
-#            raise ValueError(f"No se pudo encontrar Team: {e}")
-
-
-#async def get_teams(db: AsyncSession):
-#    result = await db.execute(database.TeamModel.__table__.select())
-#    liste = result.fetchall()
-#    teams = await datalist_to_dict(liste)
-#    return teams
-
-
-#async def update_team(team_id: int, team: schemas.TeamSchema, db: AsyncSession):
-#    try:
-#        db_team = await db.get(database.TeamModel, team_id)
-#        if db_team is None:
-#            raise ValueError("Team no existe.")
-#        db_team.bezeichnung = team.bezeichnung
-#        await db.commit()
-#        return db_team
-#    except IntegrityError as e:
-#        async with db.rollback():
-#            raise ValueError(f"Error al actualizar el equipo: {e}")
-
-
-#async def delete_team(db: AsyncSession, team: database.TeamModel):
-#    try:
-#        await db.delete(team)
-#        await db.commit()
-#    except IntegrityError as e:
-#        async with db.rollback():
-#            raise ValueError(f"Error al eliminar el equipo: {e}")
 
 
 # BEWERTUNGSART
@@ -312,7 +260,8 @@ async def get_wettbewerb(db: AsyncSession):
     return data_dict
 
 
-async def update_wettbewerb(wettbewerb_id: int, wettbewerb_bewertung: int , wettbewerb: schemas.BewertungsartSchema, db: AsyncSession):
+async def update_wettbewerb(wettbewerb_id: int, wettbewerb_bewertung: int,
+                            db: AsyncSession):
     try:
         db_wettbewerb = await db.get(database.WettbewerbModel, wettbewerb_id)
         if db_wettbewerb is None:
@@ -334,25 +283,36 @@ async def delete_wettbewerb(db: AsyncSession, wettbewerb: database.WettbewerbMod
             raise ValueError(f"Error al eliminar Wettbewerb: {e}")
 
 
-async def get_top_sportart(db: AsyncSession, sportart_id: int):
+async def get_top_sportart(db: AsyncSession, disziplin_id: int):
     result = await db.execute(
         select(
-            [database.TeilnehmerModel.teilnehmer_id, database.TeilnehmerModel.vorname,
-             database.TeilnehmerModel.nachname, database.WettbewerbModel.bewertung]
-        ) #spalten
-        .select_from(database.TeilnehmerModel)  # Especifica la tabla de la que seleccionar
-        #.join(database.WettbewerbModel,
-        #      database.WettbewerbModel.teilnehmer_id == database.TeilnehmerModel.teilnehmer_id)
-        .where(and_(
-            database.WettbewerbModel.sportart_id == sportart_id,
-            database.WettbewerbModel.teilnehmer_id == database.TeilnehmerModel.teilnehmer_id
-        ))
+            database.TeilnehmerModel.teilnehmer_id, database.TeilnehmerModel.vorname,
+            database.TeilnehmerModel.nachname, database.WettbewerbModel.bewertung
+        )
+        .select_from(database.TeilnehmerModel).join(database.WettbewerbModel)
+        .where(database.WettbewerbModel.sportart_id == disziplin_id)
         .order_by(desc(database.WettbewerbModel.bewertung))
     )
     top_sportart = result.fetchall()
+    # [print(top_sportart)]
     data_dict = []
     for zeile in top_sportart:
-        [print(zeile)]
-        keys = ["Startnummer", "Vorname", "Nachname", "Punkte"]
+        keys = ["TeilnehmerNr", "Vorname", "Nachname", "Punkte"]
         data_dict.append(dict(zip(keys, zeile)))
     return data_dict
+
+
+
+
+# async def get_top_sportart(db: AsyncSession, ein_id: int):
+#     result = await db.execute(
+#         select(database.SportartModel.bezeichnung, database.SportstaetteModel.bezeichnung)
+#         .select_from(database.SportartModel, database.SportstaetteModel)
+#         .where(database.SportartModel.sportart_id, database.SportstaetteModel.sportstaette_id == ein_id)
+#     )
+#     top_sportart = result.fetchall()
+#     data_dict = []
+#     for zeile in top_sportart:
+#         keys = ["Disziplin", "Sportstaette"]
+#         data_dict.append(dict(zip(keys, zeile)))
+#     return data_dict
