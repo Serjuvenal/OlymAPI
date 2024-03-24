@@ -6,7 +6,7 @@ from app import database
 from app import schemas
 
 
-quali_oder_finale = "2024-03-21 13:02:11.570000"
+quali_oder_finale = "2024-03-22 13:02:11.570000"
 
 # noinspection PyTypeChecker
 async def datalist_to_dict(data: Sequence[Row]):
@@ -283,14 +283,15 @@ async def delete_wettbewerb(db: AsyncSession, wettbewerb: database.WettbewerbMod
             raise ValueError(f"Error al eliminar Wettbewerb: {e}")
 
 
-async def get_top_sportart(db: AsyncSession, disziplin_id: int):
+async def get_top_sportart_qualifizierung(db: AsyncSession, disziplin_id: int):
     result = await db.execute(
         select(
             database.TeilnehmerModel.teilnehmer_id, database.TeilnehmerModel.vorname,
             database.TeilnehmerModel.nachname, database.WettbewerbModel.bewertung
         )
         .select_from(database.TeilnehmerModel).join(database.WettbewerbModel)
-        .where(database.WettbewerbModel.sportart_id == disziplin_id)
+        .where(database.WettbewerbModel.sportart_id == disziplin_id,
+               database.WettbewerbModel.termin < quali_oder_finale)
         .order_by(desc(database.WettbewerbModel.bewertung))
     )
     top_sportart = result.fetchall()
@@ -302,6 +303,24 @@ async def get_top_sportart(db: AsyncSession, disziplin_id: int):
     return data_dict
 
 
+async def get_top_sportart_finale(db: AsyncSession, disziplin_id: int):
+    result = await db.execute(
+        select(
+            database.TeilnehmerModel.teilnehmer_id, database.TeilnehmerModel.vorname,
+            database.TeilnehmerModel.nachname, database.WettbewerbModel.bewertung
+        )
+        .select_from(database.TeilnehmerModel).join(database.WettbewerbModel)
+        .where(database.WettbewerbModel.sportart_id == disziplin_id,
+               database.WettbewerbModel.termin > quali_oder_finale)
+        .order_by(desc(database.WettbewerbModel.bewertung))
+    )
+    top_sportart = result.fetchall()
+    # [print(top_sportart)]
+    data_dict = []
+    for zeile in top_sportart:
+        keys = ["TeilnehmerNr", "Vorname", "Nachname", "Punkte"]
+        data_dict.append(dict(zip(keys, zeile)))
+    return data_dict
 
 
 # async def get_top_sportart(db: AsyncSession, ein_id: int):

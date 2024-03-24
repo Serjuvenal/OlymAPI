@@ -40,7 +40,7 @@ async def sportart_anlegen(schema: schemas.SportartSchema, db: AsyncSession = De
     return promise
 
 
-@app.get("/get-sportarten")
+@app.get("/get-all-sportarten")
 async def get_all_sportarten(db: AsyncSession = Depends(get_async_session)):
     promise = await crud.get_sportarten(db)
     return promise
@@ -89,8 +89,8 @@ async def teilnehmer_registrieren(schema: schemas.TeilnehmerSchema, db: AsyncSes
         raise e
 
 
-@app.get("/get-teilnehmern")
-async def get_all_teilnehmern(db: AsyncSession = Depends(get_async_session)):
+@app.get("/get-all-teilnehmer")
+async def get_all_teilnehmer(db: AsyncSession = Depends(get_async_session)):
     promise = await crud.get_all_teilnehmer(db)
     return promise
 
@@ -104,8 +104,8 @@ async def teilnehmer(vorname: str, db: AsyncSession = Depends(get_async_session)
 #                               SPORTSTAETTEN
 
 
-@app.get("/get-sportstaetten")
-async def get_sportstaetten(db: AsyncSession = Depends(get_async_session)):
+@app.get("/get-all-sportstaetten")
+async def get_all_sportstaetten(db: AsyncSession = Depends(get_async_session)):
     promise = await crud.get_sportstaetten(db)
     return promise
 
@@ -199,8 +199,8 @@ async def bewertungsart(bewertungsart_id: int, db: AsyncSession = Depends(get_as
     return promise
 
 
-@app.get("/get-bewertungsart")
-async def get_bewertungsart(db: AsyncSession = Depends(get_async_session)):
+@app.get("/get-all-bewertungsart")
+async def get_all_bewertungsart(db: AsyncSession = Depends(get_async_session)):
     promise = await crud.get_bewertungsart(db)
     return promise
 
@@ -237,13 +237,13 @@ async def wettbewerb_anlegen(schema: schemas.WettbewerbSchema, db: AsyncSession 
 
 
 @app.get("/get-wettbewerb/{wettbewerb_id}")
-async def bewertungsart(bewertungsart_id: int, db: AsyncSession = Depends(get_async_session)):
-    promise = await crud.get_wettbewerb_by_id(db, bewertungsart_id)
+async def bewertungsart(wettbewerb_id: int, db: AsyncSession = Depends(get_async_session)):
+    promise = await crud.get_wettbewerb_by_id(db, wettbewerb_id)
     return promise
 
 
-@app.get("/get-wettbewerb")
-async def get_wettbewerb(db: AsyncSession = Depends(get_async_session)):
+@app.get("/get-all-wettbewerb")
+async def get_all_wettbewerb(db: AsyncSession = Depends(get_async_session)):
     promise = await crud.get_wettbewerb(db)
     return promise
 
@@ -280,6 +280,9 @@ async def update_wettbewerb(wettbewerb_id: int, schema: schemas.WettbewerbSchema
 
 
 @app.get("/get-top-disziplin/{sportart_id}")
-async def get_top_disziplin(sportart_id: int, db: AsyncSession = Depends(get_async_session)):
-    promise = await crud.get_top_sportart(db, sportart_id)
+async def get_top_disziplin(sportart_id: int, spiel: str, db: AsyncSession = Depends(get_async_session)):
+    if spiel == "qualifizierung":
+        promise = await crud.get_top_sportart_qualifizierung(db, sportart_id)
+    elif spiel == "finale":
+        promise = await crud.get_top_sportart_finale(db, sportart_id)
     return promise
