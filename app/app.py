@@ -5,6 +5,7 @@ from app import schemas, crud
 from app.users import auth_backend, active_user, fastapi_users
 from app.schemas import UserCreate, UserRead, UserUpdate
 from app.database import User, create_db_and_tables, get_async_session
+from fastapi.middleware.cors import CORSMiddleware
 
 # import sendmail
 
@@ -18,6 +19,15 @@ app.include_router(fastapi_users.get_register_router(UserRead, UserCreate), tags
 app.include_router(fastapi_users.get_reset_password_router(), tags=["auth"])
 app.include_router(fastapi_users.get_verify_router(UserRead), tags=["auth"])
 app.include_router(fastapi_users.get_users_router(UserRead, UserUpdate), tags=["users"], prefix="/users")
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_headers=["*"]
+)
 
 
 @app.get("/autheticated-route")
@@ -59,13 +69,13 @@ async def update_sportart(
     db_sportart = await crud.get_sportart_by_id(db, sportart_id)
     if db_sportart is None:
         raise HTTPException(status_code=404, detail="Sportstaette nicht gefunden!")
-    updated_sportart = await crud.update_sportart(sportart_id, schema, db)
+    updated_sportart = await crud.update_sportart(sportart_id, db, schema)
     return updated_sportart
 
 
-@app.delete("/delete-sportart/{sportart_id}")
-async def delete_sportart(sportart_id: int, db: AsyncSession = Depends(get_async_session)):
-    db_sportart = await crud.get_sportstaette_by_id(db, sportart_id)
+@app.delete("/delete-sportart-id/{sportart_id}")
+async def delete_sportart_id(sportart_id: int, db: AsyncSession = Depends(get_async_session)):
+    db_sportart = await crud.get_sportart_by_id(db, sportart_id)
     if db_sportart is None:
         raise HTTPException(status_code=404, detail="Sportart nicht gefunden!")
     try:
@@ -89,8 +99,8 @@ async def teilnehmer_registrieren(schema: schemas.TeilnehmerSchema, db: AsyncSes
         raise e
 
 
-@app.get("/get-all-teilnehmer")
-async def get_all_teilnehmer(db: AsyncSession = Depends(get_async_session)):
+@app.get("/get-teilnehmern")
+async def get_teilnehmern(db: AsyncSession = Depends(get_async_session)):
     promise = await crud.get_all_teilnehmer(db)
     return promise
 
@@ -124,7 +134,7 @@ async def update_sportstaette(
     db_sportstaette = await crud.get_sportstaette_by_id(db, sportstaette_id)
     if db_sportstaette is None:
         raise HTTPException(status_code=404, detail="Sportstaette nicht gefunden!")
-    updated_sportstaette = await crud.update_sportstaette(sportstaette_id, schema, db)
+    updated_sportstaette = await crud.update_sportstaette(sportstaette_id, db, schema)
     return updated_sportstaette
 
 
@@ -138,49 +148,6 @@ async def delete_sportstaette(sportstaette_id: int, db: AsyncSession = Depends(g
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     return {"message": "Sportstaette erfolgreich entfernt!"}
-
-
-#                               TEAMS
-
-
-#@app.post("/team-anlegen")
-#async def team_anlegen(schema: schemas.TeamSchema, db: AsyncSession = Depends(get_async_session)):
-#    promise = await crud.create_team(db, schema)
-#    await db.commit()
-#    return promise
-
-
-#@app.get("/get-team/{id}")
-#async def team(team_id: int, db: AsyncSession = Depends(get_async_session)):
-#    promise = await crud.get_team_by_id(db, team_id)
-#    return promise
-
-
-#@app.get("/get-teams")
-#async def get_teams(db: AsyncSession = Depends(get_async_session)):
-#    promise = await crud.get_teams(db)
-#    return promise
-
-
-#@app.put("/update-team-/{team_id}")
-#async def update_team(team_id: int, schema: schemas.TeamSchema, db: AsyncSession = Depends(get_async_session)):
-#    db_team = await crud.get_team_by_id(db, team_id)
-#    if db_team is None:
-#        raise HTTPException(status_code=404, detail="Team nicht gefunden!")
-#    updated_team = await crud.update_team(team_id, schema, db)
-#    return updated_team
-
-
-#@app.delete("/delete-team/{team_id}")
-#async def delete_team(team_id: int, db: AsyncSession = Depends(get_async_session)):
-#    db_team = await crud.get_team_by_id(db, team_id)
-#    if db_team is None:
-#        raise HTTPException(status_code=404, detail="Team nicht gefunden!")
-#    try:
-#        await crud.delete_team(db, db_team)
-#    except ValueError as e:
-#        raise HTTPException(status_code=400, detail=str(e))
-#    return {"message": "Team erfolgreich entfernt"}
 
 
 #                       BEWERTUNGSART
@@ -248,13 +215,26 @@ async def get_all_wettbewerb(db: AsyncSession = Depends(get_async_session)):
     return promise
 
 
-#@app.put("/update-wettbewerb/{wettbewerb_id}")
-#async def update_wettbewerb(wettbewerb_id: int, schema: schemas.WettbewerbSchema, db: AsyncSession = Depends(get_async_session)):
-#    db_wettbewerb = await crud.get_bewertungsart_by_id(db, wettbewerb_id)
-#    if db_wettbewerb is None:
-#        raise HTTPException(status_code=404, detail="Wettbewerb nicht gefunden!")
-#    updated_wettbewerb = await crud.update_wettbewerb(wettbewerb_id, schema, db)
-#    return updated_wettbewerb
+@app.put("/ergibniss-eingeben/{bewertung}")
+async def ergibniss_eingeben(
+        wettbewerb_id: int, bewertung: int, db: AsyncSession = Depends(get_async_session)
+):
+    db_wettbewerb = await crud.get_wettbewerb_by_id(db, wettbewerb_id)
+    if db_wettbewerb is None:
+        raise HTTPException(status_code=404, detail="Wettbewerb nicht gefunden!")
+    updated_wettbewerb = await crud.update_bewertung_in_wettbewerb(wettbewerb_id, bewertung, db,)
+    return updated_wettbewerb
+
+
+@app.put("/update-partner-wettbewerb/{partner_wettbewerb_id}")
+async def update_wettbewerb_partner_id(
+        wettbewerb_id: int, partner_wettbewerb_id: int, db: AsyncSession = Depends(get_async_session)
+):
+    db_wettbewerb = await crud.get_wettbewerb_by_id(db, wettbewerb_id)
+    if db_wettbewerb is None:
+        raise HTTPException(status_code=404, detail="Wettbewerb nicht gefunden!")
+    updated_wettbewerb = await crud.update_partner_in_wettbewerb(wettbewerb_id, partner_wettbewerb_id, db,)
+    return updated_wettbewerb
 
 
 @app.delete("/delete-wettbewerb/{wettbewerb_id}")
@@ -270,14 +250,6 @@ async def delete_wettbewerb(wettbewerb_id: int, db: AsyncSession = Depends(get_a
 
 
 # FORMS
-@app.put("/update-wettbewerb/{wettbewerb_id}")
-async def update_wettbewerb(wettbewerb_id: int, schema: schemas.WettbewerbSchema, db: AsyncSession = Depends(get_async_session)):
-    db_wettbewerb = await crud.get_wettbewerb_by_id(db, wettbewerb_id)
-    if db_wettbewerb is None:
-        raise HTTPException(status_code=404, detail="Wettbewerb nicht gefunden!")
-    updated_wettbewerb = await crud.update_wettbewerb(wettbewerb_id, schema, db)
-    return updated_wettbewerb
-
 
 @app.get("/get-top-disziplin/{sportart_id}")
 async def get_top_disziplin(sportart_id: int, spiel: str, db: AsyncSession = Depends(get_async_session)):
@@ -285,4 +257,10 @@ async def get_top_disziplin(sportart_id: int, spiel: str, db: AsyncSession = Dep
         promise = await crud.get_top_sportart_qualifizierung(db, sportart_id)
     elif spiel == "finale":
         promise = await crud.get_top_sportart_finale(db, sportart_id)
+    return promise
+
+
+@app.get("/get-all-termine")
+async def get_all_termine(db: AsyncSession = Depends(get_async_session)):
+    promise = await crud.get_termine(db)
     return promise
